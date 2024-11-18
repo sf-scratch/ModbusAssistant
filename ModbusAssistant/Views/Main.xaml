@@ -1,0 +1,176 @@
+﻿<Window x:Class="ModbusAssistant.Views.Main"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ModbusAssistant.Views"
+        xmlns:converters="clr-namespace:ModbusAssistant.Converters"
+        xmlns:viewModels="clr-namespace:ModbusAssistant.ViewModels"
+        xmlns:enums="clr-namespace:ModbusAssistant.Enums"
+        xmlns:rules="clr-namespace:ModbusAssistant.Rules"
+        xmlns:custemControl="clr-namespace:ModbusAssistant.CustomControls"
+        xmlns:prism="http://prismlibrary.com/"
+        xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+        d:DataContext="{d:DesignInstance viewModels:MainViewModel}"
+        mc:Ignorable="d"
+        Title="Main" Height="450" Width="800">
+    <Window.Resources>
+        <Style TargetType="TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="FontFamily" Value="YouYuan"/>
+        </Style>
+        <Style TargetType="ComboBox">
+            <Setter Property="Margin" Value="2"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style TargetType="ToggleButton">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border CornerRadius="5" Name="border" Background="AliceBlue">
+                            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Name="tbOpenOrClose" Text="连接"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="tbOpenOrClose" Property="Text" Value="断开连接"/>
+                                <Setter TargetName="border" Property="Background" Value="Yellow"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="border" Property="Background" Value="Gray"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <converters:BooleanNegationConverter x:Key="BooleanNegationConverter"/>
+        <converters:ConnectModeConverter x:Key="ConnectModeConverter"/>
+        <converters:VisibilityConverter x:Key="visibilityConverter"/>
+        <converters:FunctionCodeConverter x:Key="functionCodeConverter"/>
+    </Window.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="6*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="3*"/>
+        </Grid.ColumnDefinitions>
+
+        <Border Background="DarkCyan" Grid.RowSpan="2" Grid.Column="0"></Border>
+        <TextBlock Text="调试助手" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="30" Foreground="White"></TextBlock>
+
+        <Grid Grid.Row="1" Grid.Column="0" TextBlock.Foreground="White" Margin="5">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="6*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="2*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="连接模式："/>
+            <ComboBox Grid.Row="0" Grid.Column="1" 
+                      IsEnabled="{Binding ElementName=tbtnOpenOrClose, Path=IsChecked, Converter={StaticResource BooleanNegationConverter},Mode=OneWay}" 
+                      ItemsSource="{Binding ConnectList}" SelectedValue="{Binding SelectConnectMode, Converter={StaticResource ConnectModeConverter}}"/>
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="IP地址："/>
+            <TextBox Grid.Row="1" Grid.Column="1" 
+                     IsEnabled="{Binding ElementName=tbtnOpenOrClose, Path=IsChecked, Converter={StaticResource BooleanNegationConverter},Mode=OneWay}"  
+                     Text="{Binding IpAddress}"/>
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="端口号："/>
+            <TextBox Grid.Row="2" Grid.Column="1" 
+                     IsEnabled="{Binding ElementName=tbtnOpenOrClose, Path=IsChecked, Converter={StaticResource BooleanNegationConverter},Mode=OneWay}" 
+                     Text="{Binding Port}"/>
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="超时时间："/>
+            <TextBox Grid.Row="3" Grid.Column="1" 
+                     IsEnabled="{Binding ElementName=tbtnOpenOrClose, Path=IsChecked, Converter={StaticResource BooleanNegationConverter},Mode=OneWay}" 
+                     Text="{Binding Timeout}"/> 
+            <ToggleButton Grid.Row="4" Grid.ColumnSpan="2" Margin="2" Name="tbtnOpenOrClose"  
+                          IsChecked="{Binding Path=IsConnect, Mode=TwoWay}" IsEnabled="{Binding IsConnectEnable, Mode=TwoWay}"
+                          Command="{Binding ConnectCommand}"/>
+
+
+            <Border Grid.Row="5" Grid.ColumnSpan="2" BorderThickness="3" BorderBrush="White"
+                    Visibility="{Binding SelectConnectMode, Converter={StaticResource visibilityConverter}, ConverterParameter={x:Static enums:ConnectMode.ModbusTcp}}">
+                <Grid Margin="5">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="2*"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="2*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="从站号："/>
+                    <TextBox Grid.Row="0" Grid.Column="1">
+                        <TextBox.Text>
+                            <Binding Path="Definition.SlaveID" UpdateSourceTrigger="PropertyChanged" NotifyOnValidationError="True">
+                                <Binding.ValidationRules>
+                                    <rules:ByteValidationRule ValidatesOnTargetUpdated="True"/>
+                                </Binding.ValidationRules>
+                            </Binding>
+                        </TextBox.Text>
+                    </TextBox>
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="功能码："/>
+                    <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding FunctionCodeList}" 
+                              SelectedValue="{Binding Definition.FunctionCode, Converter={StaticResource functionCodeConverter}}"/>
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="地址："/>
+                    <TextBox Grid.Row="2" Grid.Column="1">
+                        <TextBox.Text>
+                            <Binding Path="Definition.Address" UpdateSourceTrigger="PropertyChanged" NotifyOnValidationError="True">
+                                <Binding.ValidationRules>
+                                    <rules:UshortValidationRule ValidatesOnTargetUpdated="True"/>
+                                </Binding.ValidationRules>
+                            </Binding>
+                        </TextBox.Text>
+                    </TextBox>
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="数量："/>
+                    <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Definition.Quantity}"/>
+                    <TextBlock Grid.Row="4" Grid.Column="0" Text="扫描(ms)："/>
+                    <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Definition.ScanRate}"/>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Grid Grid.Row="1" Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="3*"/>
+                <RowDefinition Height="2*"/>
+            </Grid.RowDefinitions>
+
+            <custemControl:ShowLastListBox Foreground="Black" BorderBrush="#DDD" Margin="0,0,0,3" ItemsSource="{Binding MsgList}"/>
+            <GridSplitter VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Height="3" Background="#CCC"/>
+            <Border Grid.Row="1" Background="#DEEE" Height="20" VerticalAlignment="Top"/>
+            <StackPanel Grid.Row="1" VerticalAlignment="Top" HorizontalAlignment="Left" Orientation="Horizontal" Margin="0,3,0,0">
+                <StackPanel.Resources>
+                    <converters:ComparsionConverter x:Key="comparsionConverter"/>
+                </StackPanel.Resources>
+                <RadioButton Content="HEX" VerticalAlignment="Center" 
+                             IsChecked="{Binding SelectSendType, Converter={StaticResource comparsionConverter}, ConverterParameter={x:Static enums:SendType.HEX}}"/>
+                <RadioButton Content="ASCII" VerticalAlignment="Center" Margin="10,0,0,0"
+                             IsChecked="{Binding SelectSendType, Converter={StaticResource comparsionConverter}, ConverterParameter={x:Static enums:SendType.ASCII}}"
+                             Visibility="{Binding SelectConnectMode, Converter={StaticResource visibilityConverter}, ConverterParameter={x:Static enums:ConnectMode.TcpIP}}"/>
+                <TextBlock Margin="10,0,0,0" VerticalAlignment="Center" Foreground="PaleVioletRed" Text="(HEX发送如：01 02)"/>
+            </StackPanel>
+
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="3*"/>
+                    <ColumnDefinition Width="1*"/>
+                </Grid.ColumnDefinitions>
+                <TextBox TextWrapping="WrapWithOverflow" BorderBrush="#DDD" Margin="0,20,0,0" Text="{Binding SendText}"/>
+                <Button Height="auto" Grid.Column="1" Background="#DDD" Margin="0,20,0,0" BorderThickness="0" Content="发送" FontSize="15" Command="{Binding SendCommand}"/>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>
