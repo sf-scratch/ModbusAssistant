@@ -46,9 +46,9 @@ namespace ModbusAssistant.Models
             }
         }
 
-        private int _quantity;
+        private ushort _quantity;
 
-        public int Quantity
+        public ushort Quantity
         {
             get { return _quantity; }
             set

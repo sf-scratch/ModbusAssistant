@@ -22,6 +22,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Markup;
 
 namespace ModbusAssistant.ViewModels
 {
@@ -176,7 +177,12 @@ namespace ModbusAssistant.ViewModels
 
         private void Send()
         {
-            if (string.IsNullOrEmpty(_sendText.Trim()))
+            if (string.IsNullOrEmpty(_sendText.Trim()) &&
+                Definition.FunctionCode == FunctionCodeType.WriteSingleCoil &&
+                Definition.FunctionCode == FunctionCodeType.WriteMultipleCoils &&
+                Definition.FunctionCode == FunctionCodeType.WriteSingleRegister &&
+                Definition.FunctionCode == FunctionCodeType.WriteMultipleRegisters
+                )
             {
                 MsgList.Add("发送信息为空");
                 return;
@@ -219,7 +225,7 @@ namespace ModbusAssistant.ViewModels
             }
         }
 
-        private void ReceiveToTcpIp()
+        private void ReceiveToTcp()
         {
             Task.Run(() =>
             {
@@ -284,38 +290,58 @@ namespace ModbusAssistant.ViewModels
             }
             try
             {
-                string receiveText = string.Empty;
                 switch (Definition.FunctionCode)
                 {
                     case FunctionCodeType.ReadCoils:
+                        //_master.ReadCoils(Definition.SlaveID, Definition.Address, Definition.Quantity);
+                        bool[] coilsStatus = await ModbusUtil.ReadCoilsAsync(_modbusTcpClient, Definition.SlaveID, Definition.Address, Definition.Quantity);
+                        if (coilsStatus != null)
+                        {
+                            MsgList.Add(string.Join(" ", coilsStatus.Select((p) => p ? 1 : 0)));
+                        }
+                        else
+                        {
+                            MsgList.Add("数据异常");
+                        }
                         break;
                     case FunctionCodeType.ReadDiscreteInputs:
                         break;
                     case FunctionCodeType.ReadHoldingRegisters:
+                        //_master.ReadHoldingRegistersAsync(Definition.SlaveID, Definition.Address, Definition.Quantity);
+                        ushort[] registerData = await ModbusUtil.ReadHoldingRegistersAsync(_modbusTcpClient, Definition.SlaveID, Definition.Address, Definition.Quantity);
+                        if (registerData != null)
+                        {
+                            MsgList.Add(string.Join(" ", registerData));
+                        }
+                        else
+                        {
+                            MsgList.Add("数据异常");
+                        }
                         break;
                     case FunctionCodeType.ReadInputRegisters:
                         break;
                     case FunctionCodeType.WriteSingleCoil:
                         //await _master.WriteSingleCoilAsync(Definition.SlaveID, Definition.Address, sendText == "1");
-                        receiveText = await ModbusUtil.WriteSingleCoilAsync(_modbusTcpClient, Definition.SlaveID, Definition.Address, sendText == "1");
+                        await ModbusUtil.WriteSingleCoilAsync(_modbusTcpClient, Definition.SlaveID, Definition.Address, sendText == "1");
                         break;
                     case FunctionCodeType.WriteSingleRegister:
                         ushort ushortData = Convert.ToUInt16(sendText, 16);
                         //await _master.WriteSingleRegisterAsync(Definition.SlaveID, Definition.Address, ushortData);
+                        await ModbusUtil.WriteSingleRegisterAsync(_modbusTcpClient, Definition.SlaveID, Definition.Address, ushortData);
                         break;
                     case FunctionCodeType.WriteMultipleCoils:
                         bool[] sendDatas = sendText.Split(' ').Select(p => p == "1").ToArray();
                         //await _master.WriteMultipleCoilsAsync(Definition.SlaveID, Definition.Address, sendDatas);
+                        await ModbusUtil.WriteMultipleCoilsAsync(_modbusTcpClient, Definition.SlaveID, Definition.Address, sendDatas);
                         break;
                     case FunctionCodeType.WriteMultipleRegisters:
                         ushort[] ushortDatas = sendText.Trim().Split(' ').Select(p => Convert.ToUInt16(p, 16)).ToArray();
                         //await _master.WriteMultipleRegistersAsync(Definition.SlaveID, Definition.Address, ushortDatas);
+                        await ModbusUtil.WriteMultipleRegistersAsync(_modbusTcpClient, Definition.SlaveID, Definition.Address, ushortDatas);
                         break;
                     default
                         : break;
                 }
-                MsgList.Add(string.Format("发送 - [{0}] {1}", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), sendText));
-                MsgList.Add(string.Format("接收 - [{0}] {1}", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), receiveText));
             }
             catch (Exception ex)
             {
@@ -349,6 +375,8 @@ namespace ModbusAssistant.ViewModels
                 _master = null;
                 _tcpIpClient?.Dispose();
                 _tcpIpClient = null;
+                ModbusUtil.SendDataEvent -= ModbusUtil_SendDataEvent;
+                ModbusUtil.ReceiveDataEvent -= ModbusUtil_ReceiveDataEvent;
             }
         }
 
@@ -364,7 +392,7 @@ namespace ModbusAssistant.ViewModels
                 await _tcpIpClient.ConnectAsync(ipAddress, port);
                 _receiveToTcpIpCTS = new CancellationTokenSource();
                 // 启动一个异步任务接收来自服务器的消息
-                ReceiveToTcpIp();
+                ReceiveToTcp();
             }
             catch (Exception ex)
             {
@@ -390,6 +418,8 @@ namespace ModbusAssistant.ViewModels
                 {
                     _modbusTcpClient = new TcpClient(ipAddress, port);
                     master = _factory.CreateMaster(_modbusTcpClient);
+                    ModbusUtil.SendDataEvent += ModbusUtil_SendDataEvent;
+                    ModbusUtil.ReceiveDataEvent += ModbusUtil_ReceiveDataEvent;
                 }
                 catch (Exception ex)
                 {
@@ -404,6 +434,18 @@ namespace ModbusAssistant.ViewModels
             });
             MsgList.Add(_master == null ? exMsg : "创建连接成功！");
             IsConnectEnable = true;
+        }
+
+        private void ModbusUtil_SendDataEvent(byte[] data)
+        {
+            string dataStr = string.Join(" ", data.Select(b => b.ToString("X2")));
+            MsgList.Add(string.Format("发送 - [{0}] {1}", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), dataStr));
+        }
+
+        private void ModbusUtil_ReceiveDataEvent(byte[] data)
+        {
+            string dataStr = string.Join(" ", data.Select(b => b.ToString("X2")));
+            MsgList.Add(string.Format("接收 - [{0}] {1}", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), dataStr));
         }
     }
 }

@@ -135,7 +135,15 @@
                         </TextBox.Text>
                     </TextBox>
                     <TextBlock Grid.Row="3" Grid.Column="0" Text="数量："/>
-                    <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Definition.Quantity}"/>
+                    <TextBox Grid.Row="3" Grid.Column="1">
+                        <TextBox.Text>
+                            <Binding Path="Definition.Quantity" UpdateSourceTrigger="PropertyChanged" NotifyOnValidationError="True">
+                                <Binding.ValidationRules>
+                                    <rules:UshortValidationRule ValidatesOnTargetUpdated="True"/>
+                                </Binding.ValidationRules>
+                            </Binding>
+                        </TextBox.Text>
+                    </TextBox>
                     <TextBlock Grid.Row="4" Grid.Column="0" Text="扫描(ms)："/>
                     <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Definition.ScanRate}"/>
                 </Grid>
