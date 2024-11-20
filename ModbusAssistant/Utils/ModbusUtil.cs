@@ -287,7 +287,7 @@ namespace ModbusAssistant.Utils
                 }
                 catch (ObjectDisposedException ex)
                 {
-                    throw ex;
+                    //throw ex;
                 }
                 catch (Exception ex)
                 {

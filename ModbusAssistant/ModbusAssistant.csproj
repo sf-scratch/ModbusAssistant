@@ -105,6 +105,7 @@
     <Compile Include="Extensions\EnumExtension.cs" />
     <Compile Include="Extensions\TcpClientExtension.cs" />
     <Compile Include="Models\ModbusDefinition.cs" />
+    <Compile Include="Models\ModbusSlaveData.cs" />
     <Compile Include="Rules\ByteValidationRule.cs" />
     <Compile Include="Rules\IntValidationRule.cs" />
     <Compile Include="Rules\NumericRangeValidationRuleBase.cs" />

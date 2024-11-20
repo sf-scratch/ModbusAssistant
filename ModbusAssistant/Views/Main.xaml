@@ -50,116 +50,131 @@
         <converters:FunctionCodeConverter x:Key="functionCodeConverter"/>
     </Window.Resources>
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="1*"/>
-            <RowDefinition Height="6*"/>
-        </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1*"/>
             <ColumnDefinition Width="3*"/>
         </Grid.ColumnDefinitions>
 
-        <Border Background="DarkCyan" Grid.RowSpan="2" Grid.Column="0"></Border>
-        <TextBlock Text="调试助手" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="30" Foreground="White"></TextBlock>
 
-        <Grid Grid.Row="1" Grid.Column="0" TextBlock.Foreground="White" Margin="5">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="1*"/>
-                <RowDefinition Height="1*"/>
-                <RowDefinition Height="1*"/>
-                <RowDefinition Height="1*"/>
-                <RowDefinition Height="1*"/>
-                <RowDefinition Height="6*"/>
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1*"/>
-                <ColumnDefinition Width="2*"/>
-            </Grid.ColumnDefinitions>
-            <TextBlock Grid.Row="0" Grid.Column="0" Text="连接模式："/>
-            <ComboBox Grid.Row="0" Grid.Column="1" 
+        <Border Grid.Row="1" Grid.Column="0" Background="DarkCyan">
+            <Grid TextBlock.Foreground="White" Margin="5">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="1.5*"/>
+                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="6*"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="2*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="调试助手" Grid.Row="0" Grid.ColumnSpan="2" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="30" Foreground="White"/>
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="连接模式："/>
+                <ComboBox Grid.Row="1" Grid.Column="1" 
                       IsEnabled="{Binding ElementName=tbtnOpenOrClose, Path=IsChecked, Converter={StaticResource BooleanNegationConverter},Mode=OneWay}" 
                       ItemsSource="{Binding ConnectList}" SelectedValue="{Binding SelectConnectMode, Converter={StaticResource ConnectModeConverter}}"/>
-            <TextBlock Grid.Row="1" Grid.Column="0" Text="IP地址："/>
-            <TextBox Grid.Row="1" Grid.Column="1" 
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="IP地址："/>
+                <TextBox Grid.Row="2" Grid.Column="1" 
                      IsEnabled="{Binding ElementName=tbtnOpenOrClose, Path=IsChecked, Converter={StaticResource BooleanNegationConverter},Mode=OneWay}"  
                      Text="{Binding IpAddress}"/>
-            <TextBlock Grid.Row="2" Grid.Column="0" Text="端口号："/>
-            <TextBox Grid.Row="2" Grid.Column="1" 
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="端口号："/>
+                <TextBox Grid.Row="3" Grid.Column="1" 
                      IsEnabled="{Binding ElementName=tbtnOpenOrClose, Path=IsChecked, Converter={StaticResource BooleanNegationConverter},Mode=OneWay}" 
                      Text="{Binding Port}"/>
-            <TextBlock Grid.Row="3" Grid.Column="0" Text="超时时间："/>
-            <TextBox Grid.Row="3" Grid.Column="1" 
+                <TextBlock Grid.Row="4" Grid.Column="0" Text="超时时间："/>
+                <TextBox Grid.Row="4" Grid.Column="1" 
                      IsEnabled="{Binding ElementName=tbtnOpenOrClose, Path=IsChecked, Converter={StaticResource BooleanNegationConverter},Mode=OneWay}" 
-                     Text="{Binding Timeout}"/> 
-            <ToggleButton Grid.Row="4" Grid.ColumnSpan="2" Margin="2" Name="tbtnOpenOrClose"  
+                     Text="{Binding Timeout}"/>
+                <ToggleButton Grid.Row="5" Grid.ColumnSpan="2" Margin="2" Name="tbtnOpenOrClose"  
                           IsChecked="{Binding Path=IsConnect, Mode=TwoWay}" IsEnabled="{Binding IsConnectEnable, Mode=TwoWay}"
                           Command="{Binding ConnectCommand}"/>
 
-
-            <Border Grid.Row="5" Grid.ColumnSpan="2" BorderThickness="3" BorderBrush="White"
+                <Border Grid.Row="6" Grid.ColumnSpan="2" BorderThickness="3" BorderBrush="White"
                     Visibility="{Binding SelectConnectMode, Converter={StaticResource visibilityConverter}, ConverterParameter={x:Static enums:ConnectMode.ModbusTcp}}">
-                <Grid Margin="5">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="1*"/>
-                        <RowDefinition Height="1*"/>
-                        <RowDefinition Height="1*"/>
-                        <RowDefinition Height="1*"/>
-                        <RowDefinition Height="1*"/>
-                        <RowDefinition Height="2*"/>
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="1*"/>
-                        <ColumnDefinition Width="2*"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Row="0" Grid.Column="0" Text="从站号："/>
-                    <TextBox Grid.Row="0" Grid.Column="1">
-                        <TextBox.Text>
-                            <Binding Path="Definition.SlaveID" UpdateSourceTrigger="PropertyChanged" NotifyOnValidationError="True">
-                                <Binding.ValidationRules>
-                                    <rules:ByteValidationRule ValidatesOnTargetUpdated="True"/>
-                                </Binding.ValidationRules>
-                            </Binding>
-                        </TextBox.Text>
-                    </TextBox>
-                    <TextBlock Grid.Row="1" Grid.Column="0" Text="功能码："/>
-                    <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding FunctionCodeList}" 
+                    <Grid Margin="5">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="2*"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="2*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="从站号："/>
+                        <TextBox Grid.Row="0" Grid.Column="1">
+                            <TextBox.Text>
+                                <Binding Path="Definition.SlaveID" UpdateSourceTrigger="PropertyChanged" NotifyOnValidationError="True">
+                                    <Binding.ValidationRules>
+                                        <rules:ByteValidationRule ValidatesOnTargetUpdated="True"/>
+                                    </Binding.ValidationRules>
+                                </Binding>
+                            </TextBox.Text>
+                        </TextBox>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="功能码："/>
+                        <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding FunctionCodeList}" 
                               SelectedValue="{Binding Definition.FunctionCode, Converter={StaticResource functionCodeConverter}}"/>
-                    <TextBlock Grid.Row="2" Grid.Column="0" Text="地址："/>
-                    <TextBox Grid.Row="2" Grid.Column="1">
-                        <TextBox.Text>
-                            <Binding Path="Definition.Address" UpdateSourceTrigger="PropertyChanged" NotifyOnValidationError="True">
-                                <Binding.ValidationRules>
-                                    <rules:UshortValidationRule ValidatesOnTargetUpdated="True"/>
-                                </Binding.ValidationRules>
-                            </Binding>
-                        </TextBox.Text>
-                    </TextBox>
-                    <TextBlock Grid.Row="3" Grid.Column="0" Text="数量："/>
-                    <TextBox Grid.Row="3" Grid.Column="1">
-                        <TextBox.Text>
-                            <Binding Path="Definition.Quantity" UpdateSourceTrigger="PropertyChanged" NotifyOnValidationError="True">
-                                <Binding.ValidationRules>
-                                    <rules:UshortValidationRule ValidatesOnTargetUpdated="True"/>
-                                </Binding.ValidationRules>
-                            </Binding>
-                        </TextBox.Text>
-                    </TextBox>
-                    <TextBlock Grid.Row="4" Grid.Column="0" Text="扫描(ms)："/>
-                    <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Definition.ScanRate}"/>
-                </Grid>
-            </Border>
-        </Grid>
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="地址："/>
+                        <TextBox Grid.Row="2" Grid.Column="1">
+                            <TextBox.Text>
+                                <Binding Path="Definition.Address" UpdateSourceTrigger="PropertyChanged" NotifyOnValidationError="True">
+                                    <Binding.ValidationRules>
+                                        <rules:UshortValidationRule ValidatesOnTargetUpdated="True"/>
+                                    </Binding.ValidationRules>
+                                </Binding>
+                            </TextBox.Text>
+                        </TextBox>
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="数量："/>
+                        <TextBox Grid.Row="3" Grid.Column="1">
+                            <TextBox.Text>
+                                <Binding Path="Definition.Quantity" UpdateSourceTrigger="PropertyChanged" NotifyOnValidationError="True">
+                                    <Binding.ValidationRules>
+                                        <rules:UshortValidationRule ValidatesOnTargetUpdated="True"/>
+                                    </Binding.ValidationRules>
+                                </Binding>
+                            </TextBox.Text>
+                        </TextBox>
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="扫描(ms)："/>
+                        <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Definition.ScanRate}"/>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
 
         <Grid Grid.Row="1" Grid.Column="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="3*"/>
                 <RowDefinition Height="2*"/>
             </Grid.RowDefinitions>
-
-            <custemControl:ShowLastListBox Foreground="Black" BorderBrush="#DDD" Margin="0,0,0,3" ItemsSource="{Binding MsgList}"/>
-            <GridSplitter VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Height="3" Background="#CCC"/>
-            <Border Grid.Row="1" Background="#DEEE" Height="20" VerticalAlignment="Top"/>
-            <StackPanel Grid.Row="1" VerticalAlignment="Top" HorizontalAlignment="Left" Orientation="Horizontal" Margin="0,3,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+            <custemControl:ShowLastListBox Foreground="Black" Margin="0,0,0,3" ItemsSource="{Binding MsgList}"/>
+            <!--<DataGrid Grid.Column="1" CanUserAddRows="False" ItemsSource="{Binding ModbusDataList}" SelectionMode="Extended" SelectionUnit="Cell" />-->
+            <ListBox Grid.Column="1" ItemsSource="{Binding ModbusDataList}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1*"/>
+                                <ColumnDefinition Width="1*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Foreground="Black" Text="{Binding Index}" Margin="0,0,10,0"/>
+                            <TextBlock Grid.Column="1" Foreground="Black" Text="{Binding Value}"/>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <GridSplitter Grid.ColumnSpan="2" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Height="3" Background="#CCC"/>
+            <Border Grid.Row="1" Grid.ColumnSpan="2" Background="#DEEE" Height="20" VerticalAlignment="Top"/>
+            <StackPanel Grid.Row="1" Grid.ColumnSpan="2" VerticalAlignment="Top" HorizontalAlignment="Left" Orientation="Horizontal" Margin="0,3,0,0">
                 <StackPanel.Resources>
                     <converters:ComparsionConverter x:Key="comparsionConverter"/>
                 </StackPanel.Resources>
@@ -171,7 +186,7 @@
                 <TextBlock Margin="10,0,0,0" VerticalAlignment="Center" Foreground="PaleVioletRed" Text="(HEX发送如：01 02)"/>
             </StackPanel>
 
-            <Grid Grid.Row="1">
+            <Grid Grid.Row="1" Grid.ColumnSpan="2">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="3*"/>
                     <ColumnDefinition Width="1*"/>
