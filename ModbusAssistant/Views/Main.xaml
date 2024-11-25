@@ -44,13 +44,6 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        <Style x:Key="DataGridHeaderStyle" TargetType="DataGridColumnHeader">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="Foreground" Value="Black"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-        </Style>
         <converters:BooleanNegationConverter x:Key="BooleanNegationConverter"/>
         <converters:ConnectModeConverter x:Key="ConnectModeConverter"/>
         <converters:VisibilityConverter x:Key="visibilityConverter"/>
@@ -195,19 +188,8 @@
             <!--分割-->
             <GridSplitter Background="Gray" Grid.Column="1" Width="6" HorizontalAlignment="Center" VerticalAlignment="Stretch" ResizeBehavior="PreviousAndNext" ResizeDirection="Columns" Cursor="SizeWE"/>
             <DataGrid Grid.Column="2" AutoGenerateColumns="False" CanUserAddRows="False"
-                      HeadersVisibility="All" Background="White"
+                      HeadersVisibility="All"
                       ItemsSource="{Binding ModbusDataList}">
-                <DataGrid.Resources>
-                    <!-- 定义行样式 -->
-                    <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
-                        <Style.Triggers>
-                            <!-- 当行被选中时，更改背景色 -->
-                            <Trigger Property="IsSelected" Value="True">
-                                <Setter Property="Background" Value="LightBlue"/>
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
-                </DataGrid.Resources>
                 <i:Interaction.Triggers>
                     <i:EventTrigger EventName="PreparingCellForEdit">
                         <i:InvokeCommandAction Command="{Binding PreparingCellForEditCommand}" PassEventArgsToCommand="True"/>
@@ -219,14 +201,8 @@
                 <DataGrid.Columns>
                     <md:DataGridTextColumn
                         IsReadOnly="True"
-                        HeaderStyle="{StaticResource DataGridHeaderStyle}"
+                        ElementStyle="{StaticResource MaterialDesignDataGridTextColumnStyle}"
                         EditingElementStyle="{StaticResource MaterialDesignDataGridTextColumnPopupEditingStyle}">
-                        <md:DataGridTextColumn.ElementStyle>
-                            <Style TargetType="TextBlock" BasedOn="{StaticResource MaterialDesignDataGridTextColumnStyle}">
-                                <Setter Property="Background" Value="White"/>
-                                <Setter Property="Foreground" Value="Black"/>
-                            </Style>
-                        </md:DataGridTextColumn.ElementStyle>
                         <md:DataGridTextColumn.Binding>
                             <Binding Path="Index">
                                 <Binding.ValidationRules>
@@ -236,15 +212,9 @@
                         </md:DataGridTextColumn.Binding>
                     </md:DataGridTextColumn>
                     <md:DataGridTextColumn
-                        HeaderStyle="{StaticResource DataGridHeaderStyle}"
+                        ElementStyle="{StaticResource MaterialDesignDataGridTextColumnStyle}"
                         EditingElementStyle="{StaticResource MaterialDesignDataGridTextColumnPopupEditingStyle}"
                         Header="{Binding Source={StaticResource mainDataContext}, Path=Data.DataContext.Definition.Address}">
-                        <md:DataGridTextColumn.ElementStyle>
-                            <Style TargetType="TextBlock" BasedOn="{StaticResource MaterialDesignDataGridTextColumnStyle}">
-                                <Setter Property="Background" Value="White"/>
-                                <Setter Property="Foreground" Value="Black"/>
-                            </Style>
-                        </md:DataGridTextColumn.ElementStyle>
                         <md:DataGridTextColumn.Binding>
                             <Binding Path="Value" UpdateSourceTrigger="PropertyChanged">
                                 <Binding.ValidationRules>
