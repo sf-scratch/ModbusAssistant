@@ -112,6 +112,7 @@
     <Compile Include="Rules\UshortValidationRule.cs" />
     <Compile Include="Utils\CustomVisualTreeHelper.cs" />
     <Compile Include="Utils\ModbusUtil.cs" />
+    <Compile Include="ViewModels\BindingProxy.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="Views\Main.xaml.cs">
       <DependentUpon>Main.xaml</DependentUpon>

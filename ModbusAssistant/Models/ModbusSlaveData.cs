@@ -9,9 +9,9 @@ namespace ModbusAssistant.Models
 {
     public class ModbusSlaveData : BindableBase
     {
-        private int _index;
+        private ushort _index;
 
-        public int Index
+        public ushort Index
         {
             get { return _index; }
             set

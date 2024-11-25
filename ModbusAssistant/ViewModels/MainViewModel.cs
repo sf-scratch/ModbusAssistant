@@ -22,6 +22,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Markup;
 
 namespace ModbusAssistant.ViewModels
@@ -30,15 +31,19 @@ namespace ModbusAssistant.ViewModels
     {
         public DelegateCommand ConnectCommand { get; set; }
         public DelegateCommand SendCommand { get; set; }
+        public DelegateCommand<DataGridPreparingCellForEditEventArgs> PreparingCellForEditCommand { get; set; }
+        public DelegateCommand<DataGridCellEditEndingEventArgs> CellEditEndingCommand { get; set; }
         public ObservableCollection<string> MsgList { get; set; }
         public ObservableCollection<string> ConnectList { get; set; }
         public ObservableCollection<string> FunctionCodeList { get; set; }
         public ObservableCollection<ModbusSlaveData> ModbusDataList { get; set; }
+        private bool IsEditingCell {  get; set; }
         private TcpClient _tcpIpClient;
         private TcpClient _modbusTcpClient;
         private ModbusFactory _factory;
         private IModbusMaster _master;
         private CancellationTokenSource _receiveToTcpIpCTS;
+        private CancellationTokenSource _keepUpdatingCTS;
 
         private ConnectMode _selectConnectMode;
 
@@ -149,6 +154,8 @@ namespace ModbusAssistant.ViewModels
         {
             ConnectCommand = new DelegateCommand(Connect);
             SendCommand = new DelegateCommand(Send);
+            PreparingCellForEditCommand = new DelegateCommand<DataGridPreparingCellForEditEventArgs>(PreparingCellForEdit);
+            CellEditEndingCommand = new DelegateCommand<DataGridCellEditEndingEventArgs>(CellEditEndingAsync);
             _factory = new ModbusFactory();
             ConnectList = new ObservableCollection<string>();
             foreach (ConnectMode status in Enum.GetValues(typeof(ConnectMode)))
@@ -176,6 +183,41 @@ namespace ModbusAssistant.ViewModels
             _definition.Quantity = 10;
             _definition.ScanRate = 1000;
             MsgList.Add("启动调试助手成功！");
+        }
+
+        private async void CellEditEndingAsync(DataGridCellEditEndingEventArgs eventArgs)
+        {
+            if (eventArgs.Row.DataContext is ModbusSlaveData data)
+            {
+                try
+                {
+                    switch (Definition.FunctionCode)
+                    {
+                        case FunctionCodeType.ReadCoils:
+                        case FunctionCodeType.WriteSingleCoil:
+                        case FunctionCodeType.WriteMultipleCoils:
+                            await ModbusUtil.WriteSingleCoilAsync(_modbusTcpClient, Definition.SlaveID, (ushort)(Definition.Address + data.Index), data.Value == 1);
+                            break;
+                        case FunctionCodeType.ReadHoldingRegisters:
+                        case FunctionCodeType.WriteSingleRegister:
+                        case FunctionCodeType.WriteMultipleRegisters:
+                            await ModbusUtil.WriteSingleRegisterAsync(_modbusTcpClient, Definition.SlaveID, (ushort)(Definition.Address + data.Index), data.Value);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                catch(Exception ex)
+                {
+                    MsgList.Add(ex.Message);
+                }
+            }
+            IsEditingCell = false;
+        }
+
+        private void PreparingCellForEdit(DataGridPreparingCellForEditEventArgs eventArgs)
+        {
+            IsEditingCell = true;
         }
 
         private void Send()
@@ -374,12 +416,14 @@ namespace ModbusAssistant.ViewModels
             else
             {
                 _receiveToTcpIpCTS?.Cancel();
+                _keepUpdatingCTS?.Cancel();
                 _master?.Dispose();
                 _master = null;
                 _tcpIpClient?.Dispose();
                 _tcpIpClient = null;
                 ModbusUtil.SendDataEvent -= ModbusUtil_SendDataEvent;
                 ModbusUtil.ReceiveDataEvent -= ModbusUtil_ReceiveDataEvent;
+                Definition.PropertyChanged -= Definition_PropertyChanged;
             }
         }
 
@@ -391,7 +435,6 @@ namespace ModbusAssistant.ViewModels
             try
             {
                 _tcpIpClient = new TcpClient();
-                // 异步连接到指定的服务器IP和端口
                 await _tcpIpClient.ConnectAsync(ipAddress, port);
                 _receiveToTcpIpCTS = new CancellationTokenSource();
                 // 启动一个异步任务接收来自服务器的消息
@@ -423,7 +466,21 @@ namespace ModbusAssistant.ViewModels
                     master = _factory.CreateMaster(_modbusTcpClient);
                     ModbusUtil.SendDataEvent += ModbusUtil_SendDataEvent;
                     ModbusUtil.ReceiveDataEvent += ModbusUtil_ReceiveDataEvent;
+                    Definition.PropertyChanged += Definition_PropertyChanged;
                     KeepUpdatingModbusDataList();
+                    //Task.Run(() =>
+                    //{
+                    //    ushort i = 0;
+                    //    while (true)
+                    //    {
+                    //        Task.Delay(1000).Wait();
+                    //        ModbusUtil.WriteSingleRegisterAsync(_modbusTcpClient, Definition.SlaveID, Definition.Address, i++);
+                    //        if (i == ushort.MaxValue)
+                    //        {
+                    //            i = 0;
+                    //        }
+                    //    }
+                    //});
                 }
                 catch (Exception ex)
                 {
@@ -440,55 +497,92 @@ namespace ModbusAssistant.ViewModels
             IsConnectEnable = true;
         }
 
+        private void Definition_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            IsDefinitionPropertyChanged = true;
+        }
+
+        private bool IsDefinitionPropertyChanged { get; set; } = true;
+
         private void KeepUpdatingModbusDataList()
         {
+            _keepUpdatingCTS = new CancellationTokenSource();
             Task.Run(async () => 
             {
                 try
                 {
-                    while (_modbusTcpClient.IsOnline())
+                    while (!_keepUpdatingCTS.IsCancellationRequested && _modbusTcpClient.IsOnline())
                     {
-                        switch (Definition.FunctionCode)
+                        //判断未在编辑状态才更新数据
+                        if (!IsEditingCell)
                         {
-                            case FunctionCodeType.ReadCoils:
-                            case FunctionCodeType.WriteSingleCoil:
-                            case FunctionCodeType.WriteMultipleCoils:
-                                bool[] coilsStatus = await ModbusUtil.ReadCoilsAsync(_modbusTcpClient, Definition.SlaveID, Definition.Address, Definition.Quantity);
-                                if (coilsStatus != null)
-                                {
-                                    PrismApplication.Current.Dispatcher.Invoke(() =>
+                            switch (Definition.FunctionCode)
+                            {
+                                case FunctionCodeType.ReadCoils:
+                                case FunctionCodeType.WriteSingleCoil:
+                                case FunctionCodeType.WriteMultipleCoils:
+                                    bool[] coilsStatus = await ModbusUtil.ReadCoilsAsync(_modbusTcpClient, Definition.SlaveID, Definition.Address, Definition.Quantity);
+                                    if (IsDefinitionPropertyChanged)
                                     {
-                                        ModbusDataList.Clear();
-                                        for (int i = 0; i < coilsStatus.Length; i++)
+                                        PrismApplication.Current.Dispatcher.Invoke(() =>
                                         {
-                                            ModbusDataList.Add(new ModbusSlaveData() { Index = i, Value = coilsStatus[i] ? (ushort)1 : (ushort)0 });
-                                        }
-                                    });
-                                }
-                                break;
-                            case FunctionCodeType.ReadHoldingRegisters:
-                            case FunctionCodeType.WriteSingleRegister:
-                            case FunctionCodeType.WriteMultipleRegisters:
-                                ushort[] registerData = await ModbusUtil.ReadHoldingRegistersAsync(_modbusTcpClient, Definition.SlaveID, Definition.Address, Definition.Quantity);
-                                if (registerData != null)
-                                {
-                                    PrismApplication.Current.Dispatcher.Invoke(() =>
+                                            ModbusDataList.Clear();
+                                            for (ushort i = 0; i < coilsStatus.Length; i++)
+                                            {
+                                                ModbusDataList.Add(new ModbusSlaveData() { Index = i, Value = coilsStatus[i] ? (ushort)1 : (ushort)0 });
+                                            }
+                                        });
+                                        IsDefinitionPropertyChanged = false;
+                                    }
+                                    else if (coilsStatus.Length == ModbusDataList.Count)
                                     {
-                                        ModbusDataList.Clear();
-                                        for (int i = 0; i < registerData.Length; i++)
+                                        PrismApplication.Current.Dispatcher.Invoke(() =>
                                         {
-                                            ModbusDataList.Add(new ModbusSlaveData() { Index = i, Value = registerData[i] });
+                                            for (int i = 0; i < coilsStatus.Length; i++)
+                                            {
+                                                ModbusDataList[i].Value = coilsStatus[i] ? (ushort)1 : (ushort)0;
+                                            }
+                                        });
+                                    }
+                                    break;
+                                case FunctionCodeType.ReadHoldingRegisters:
+                                case FunctionCodeType.WriteSingleRegister:
+                                case FunctionCodeType.WriteMultipleRegisters:
+                                    ushort[] registerData = await ModbusUtil.ReadHoldingRegistersAsync(_modbusTcpClient, Definition.SlaveID, Definition.Address, Definition.Quantity);
+                                    if (registerData != null)
+                                    {
+                                        if (IsDefinitionPropertyChanged)
+                                        {
+                                            PrismApplication.Current.Dispatcher.Invoke(() =>
+                                            {
+                                                ModbusDataList.Clear();
+                                                for (ushort i = 0; i < registerData.Length; i++)
+                                                {
+                                                    ModbusDataList.Add(new ModbusSlaveData() { Index = i, Value = registerData[i] });
+                                                }
+                                            });
+                                            IsDefinitionPropertyChanged = false;
                                         }
-                                    });
-                                }
-                                break;
-                            case FunctionCodeType.ReadDiscreteInputs:
-                                break;
-                            case FunctionCodeType.ReadInputRegisters:
-                                break;
-                            default
-                            :
-                                break;
+                                        else if (registerData.Length == ModbusDataList.Count)
+                                        {
+                                            PrismApplication.Current.Dispatcher.Invoke(() =>
+                                            {
+                                                for (int i = 0; i < registerData.Length; i++)
+                                                {
+                                                    ModbusDataList[i].Value = registerData[i];
+                                                }
+                                            });
+                                        }
+                                    }
+                                    break;
+                                case FunctionCodeType.ReadDiscreteInputs:
+                                    break;
+                                case FunctionCodeType.ReadInputRegisters:
+                                    break;
+                                default
+                                :
+                                    break;
+                            }
                         }
                         Task.Delay(Definition.ScanRate).Wait();
                     }

@@ -11,10 +11,10 @@
         xmlns:custemControl="clr-namespace:ModbusAssistant.CustomControls"
         xmlns:prism="http://prismlibrary.com/"
         xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
-        xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         d:DataContext="{d:DesignInstance viewModels:MainViewModel}"
         mc:Ignorable="d"
-        Title="Main" Height="450" Width="800">
+        Title="Main" Height="450" Width="800" x:Name="main">
     <Window.Resources>
         <Style TargetType="TextBlock">
             <Setter Property="VerticalAlignment" Value="Center"/>
@@ -44,17 +44,25 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <Style x:Key="DataGridHeaderStyle" TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="Black"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
         <converters:BooleanNegationConverter x:Key="BooleanNegationConverter"/>
         <converters:ConnectModeConverter x:Key="ConnectModeConverter"/>
         <converters:VisibilityConverter x:Key="visibilityConverter"/>
         <converters:FunctionCodeConverter x:Key="functionCodeConverter"/>
+        <viewModels:BindingProxy x:Key="mainDataContext" Data="{Binding ElementName=main}"/>
     </Window.Resources>
+    
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1*"/>
             <ColumnDefinition Width="3*"/>
         </Grid.ColumnDefinitions>
-
 
         <Border Grid.Row="1" Grid.Column="0" Background="DarkCyan">
             <Grid TextBlock.Foreground="White" Margin="5">
@@ -154,27 +162,103 @@
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="2*"/>
-                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition>
+                    <ColumnDefinition.Style>
+                        <Style TargetType="ColumnDefinition">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SelectConnectMode}" Value="{x:Static enums:ConnectMode.TcpIP}">
+                                    <Setter Property="Width" Value="0"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding SelectConnectMode}" Value="{x:Static enums:ConnectMode.ModbusTcp}">
+                                    <Setter Property="Width" Value="auto"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ColumnDefinition.Style>
+                </ColumnDefinition>
+                <ColumnDefinition>
+                    <ColumnDefinition.Style>
+                        <Style TargetType="ColumnDefinition">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SelectConnectMode}" Value="{x:Static enums:ConnectMode.TcpIP}">
+                                    <Setter Property="Width" Value="0"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding SelectConnectMode}" Value="{x:Static enums:ConnectMode.ModbusTcp}">
+                                    <Setter Property="Width" Value="200"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ColumnDefinition.Style>
+                </ColumnDefinition>
             </Grid.ColumnDefinitions>
-            <custemControl:ShowLastListBox Foreground="Black" Margin="0,0,0,3" ItemsSource="{Binding MsgList}"/>
-            <!--<DataGrid Grid.Column="1" CanUserAddRows="False" ItemsSource="{Binding ModbusDataList}" SelectionMode="Extended" SelectionUnit="Cell" />-->
-            <ListBox Grid.Column="1" ItemsSource="{Binding ModbusDataList}">
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="1*"/>
-                                <ColumnDefinition Width="1*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Foreground="Black" Text="{Binding Index}" Margin="0,0,10,0"/>
-                            <TextBlock Grid.Column="1" Foreground="Black" Text="{Binding Value}"/>
-                        </Grid>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
-            <GridSplitter Grid.ColumnSpan="2" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Height="3" Background="#CCC"/>
-            <Border Grid.Row="1" Grid.ColumnSpan="2" Background="#DEEE" Height="20" VerticalAlignment="Top"/>
-            <StackPanel Grid.Row="1" Grid.ColumnSpan="2" VerticalAlignment="Top" HorizontalAlignment="Left" Orientation="Horizontal" Margin="0,3,0,0">
+            <custemControl:ShowLastListBox Foreground="Black" Margin="0,0,0,3" ItemsSource="{Binding MsgList}" SelectionMode="Extended"/>
+            <!--分割-->
+            <GridSplitter Background="Gray" Grid.Column="1" Width="6" HorizontalAlignment="Center" VerticalAlignment="Stretch" ResizeBehavior="PreviousAndNext" ResizeDirection="Columns" Cursor="SizeWE"/>
+            <DataGrid Grid.Column="2" AutoGenerateColumns="False" CanUserAddRows="False"
+                      HeadersVisibility="All" Background="White"
+                      ItemsSource="{Binding ModbusDataList}">
+                <DataGrid.Resources>
+                    <!-- 定义行样式 -->
+                    <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
+                        <Style.Triggers>
+                            <!-- 当行被选中时，更改背景色 -->
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="LightBlue"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </DataGrid.Resources>
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="PreparingCellForEdit">
+                        <i:InvokeCommandAction Command="{Binding PreparingCellForEditCommand}" PassEventArgsToCommand="True"/>
+                    </i:EventTrigger>
+                    <i:EventTrigger EventName="CellEditEnding">
+                        <i:InvokeCommandAction Command="{Binding CellEditEndingCommand}" PassEventArgsToCommand="True"/>
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+                <DataGrid.Columns>
+                    <md:DataGridTextColumn
+                        IsReadOnly="True"
+                        HeaderStyle="{StaticResource DataGridHeaderStyle}"
+                        EditingElementStyle="{StaticResource MaterialDesignDataGridTextColumnPopupEditingStyle}">
+                        <md:DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock" BasedOn="{StaticResource MaterialDesignDataGridTextColumnStyle}">
+                                <Setter Property="Background" Value="White"/>
+                                <Setter Property="Foreground" Value="Black"/>
+                            </Style>
+                        </md:DataGridTextColumn.ElementStyle>
+                        <md:DataGridTextColumn.Binding>
+                            <Binding Path="Index">
+                                <Binding.ValidationRules>
+                                    <rules:UshortValidationRule/>
+                                </Binding.ValidationRules>
+                            </Binding>
+                        </md:DataGridTextColumn.Binding>
+                    </md:DataGridTextColumn>
+                    <md:DataGridTextColumn
+                        HeaderStyle="{StaticResource DataGridHeaderStyle}"
+                        EditingElementStyle="{StaticResource MaterialDesignDataGridTextColumnPopupEditingStyle}"
+                        Header="{Binding Source={StaticResource mainDataContext}, Path=Data.DataContext.Definition.Address}">
+                        <md:DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock" BasedOn="{StaticResource MaterialDesignDataGridTextColumnStyle}">
+                                <Setter Property="Background" Value="White"/>
+                                <Setter Property="Foreground" Value="Black"/>
+                            </Style>
+                        </md:DataGridTextColumn.ElementStyle>
+                        <md:DataGridTextColumn.Binding>
+                            <Binding Path="Value" UpdateSourceTrigger="PropertyChanged">
+                                <Binding.ValidationRules>
+                                    <rules:UshortValidationRule/>
+                                </Binding.ValidationRules>
+                            </Binding>
+                        </md:DataGridTextColumn.Binding>
+                    </md:DataGridTextColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <GridSplitter Grid.ColumnSpan="3" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Height="3" Background="#CCC"/>
+            <Border Grid.Row="1" Grid.ColumnSpan="3" Background="#DEEE" Height="20" VerticalAlignment="Top"/>
+            <StackPanel Grid.Row="1" Grid.ColumnSpan="3" VerticalAlignment="Top" HorizontalAlignment="Left" Orientation="Horizontal" Margin="0,3,0,0">
                 <StackPanel.Resources>
                     <converters:ComparsionConverter x:Key="comparsionConverter"/>
                 </StackPanel.Resources>
@@ -186,7 +270,7 @@
                 <TextBlock Margin="10,0,0,0" VerticalAlignment="Center" Foreground="PaleVioletRed" Text="(HEX发送如：01 02)"/>
             </StackPanel>
 
-            <Grid Grid.Row="1" Grid.ColumnSpan="2">
+            <Grid Grid.Row="1" Grid.ColumnSpan="3">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="3*"/>
                     <ColumnDefinition Width="1*"/>
