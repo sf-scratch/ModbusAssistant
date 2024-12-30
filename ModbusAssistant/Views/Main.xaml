@@ -44,10 +44,6 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        <converters:BooleanNegationConverter x:Key="BooleanNegationConverter"/>
-        <converters:ConnectModeConverter x:Key="ConnectModeConverter"/>
-        <converters:VisibilityConverter x:Key="visibilityConverter"/>
-        <converters:FunctionCodeConverter x:Key="functionCodeConverter"/>
         <viewModels:BindingProxy x:Key="mainDataContext" Data="{Binding ElementName=main}"/>
     </Window.Resources>
     
@@ -75,26 +71,29 @@
                 <TextBlock Text="调试助手" Grid.Row="0" Grid.ColumnSpan="2" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="30" Foreground="White"/>
                 <TextBlock Grid.Row="1" Grid.Column="0" Text="连接模式："/>
                 <ComboBox Grid.Row="1" Grid.Column="1" 
-                      IsEnabled="{Binding ElementName=tbtnOpenOrClose, Path=IsChecked, Converter={StaticResource BooleanNegationConverter},Mode=OneWay}" 
-                      ItemsSource="{Binding ConnectList}" SelectedValue="{Binding SelectConnectMode, Converter={StaticResource ConnectModeConverter}}"/>
+                      IsEnabled="{Binding ElementName=tbtnOpenOrClose, Path=IsChecked, Converter={converters:BooleanNegationConverter},Mode=OneWay}" 
+                      ItemsSource="{Binding ConnectList}" SelectedValue="{Binding SelectConnectMode, Converter={converters:ConnectModeConverter}}"/>
                 <TextBlock Grid.Row="2" Grid.Column="0" Text="IP地址："/>
                 <TextBox Grid.Row="2" Grid.Column="1" 
-                     IsEnabled="{Binding ElementName=tbtnOpenOrClose, Path=IsChecked, Converter={StaticResource BooleanNegationConverter},Mode=OneWay}"  
+                         VerticalAlignment="Center"
+                     IsEnabled="{Binding ElementName=tbtnOpenOrClose, Path=IsChecked, Converter={converters:BooleanNegationConverter},Mode=OneWay}"  
                      Text="{Binding IpAddress}"/>
                 <TextBlock Grid.Row="3" Grid.Column="0" Text="端口号："/>
                 <TextBox Grid.Row="3" Grid.Column="1" 
-                     IsEnabled="{Binding ElementName=tbtnOpenOrClose, Path=IsChecked, Converter={StaticResource BooleanNegationConverter},Mode=OneWay}" 
+                         VerticalAlignment="Center"
+                     IsEnabled="{Binding ElementName=tbtnOpenOrClose, Path=IsChecked, Converter={converters:BooleanNegationConverter},Mode=OneWay}" 
                      Text="{Binding Port}"/>
                 <TextBlock Grid.Row="4" Grid.Column="0" Text="超时时间："/>
                 <TextBox Grid.Row="4" Grid.Column="1" 
-                     IsEnabled="{Binding ElementName=tbtnOpenOrClose, Path=IsChecked, Converter={StaticResource BooleanNegationConverter},Mode=OneWay}" 
+                         VerticalAlignment="Center"
+                     IsEnabled="{Binding ElementName=tbtnOpenOrClose, Path=IsChecked, Converter={converters:BooleanNegationConverter},Mode=OneWay}" 
                      Text="{Binding Timeout}"/>
                 <ToggleButton Grid.Row="5" Grid.ColumnSpan="2" Margin="2" Name="tbtnOpenOrClose"  
                           IsChecked="{Binding Path=IsConnect, Mode=TwoWay}" IsEnabled="{Binding IsConnectEnable, Mode=TwoWay}"
                           Command="{Binding ConnectCommand}"/>
 
                 <Border Grid.Row="6" Grid.ColumnSpan="2" BorderThickness="3" BorderBrush="White"
-                    Visibility="{Binding SelectConnectMode, Converter={StaticResource visibilityConverter}, ConverterParameter={x:Static enums:ConnectMode.ModbusTcp}}">
+                    Visibility="{Binding SelectConnectMode, Converter={converters:VisibilityConverter}, ConverterParameter={x:Static enums:ConnectMode.ModbusTcp}}">
                     <Grid Margin="5">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="1*"/>
@@ -109,7 +108,7 @@
                             <ColumnDefinition Width="2*"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Row="0" Grid.Column="0" Text="从站号："/>
-                        <TextBox Grid.Row="0" Grid.Column="1">
+                        <TextBox Grid.Row="0" Grid.Column="1" VerticalAlignment="Center">
                             <TextBox.Text>
                                 <Binding Path="Definition.SlaveID" UpdateSourceTrigger="PropertyChanged" NotifyOnValidationError="True">
                                     <Binding.ValidationRules>
@@ -120,9 +119,9 @@
                         </TextBox>
                         <TextBlock Grid.Row="1" Grid.Column="0" Text="功能码："/>
                         <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding FunctionCodeList}" 
-                              SelectedValue="{Binding Definition.FunctionCode, Converter={StaticResource functionCodeConverter}}"/>
+                              SelectedValue="{Binding Definition.FunctionCode, Converter={converters:FunctionCodeConverter}}"/>
                         <TextBlock Grid.Row="2" Grid.Column="0" Text="地址："/>
-                        <TextBox Grid.Row="2" Grid.Column="1">
+                        <TextBox Grid.Row="2" Grid.Column="1" VerticalAlignment="Center">
                             <TextBox.Text>
                                 <Binding Path="Definition.Address" UpdateSourceTrigger="PropertyChanged" NotifyOnValidationError="True">
                                     <Binding.ValidationRules>
@@ -132,7 +131,7 @@
                             </TextBox.Text>
                         </TextBox>
                         <TextBlock Grid.Row="3" Grid.Column="0" Text="数量："/>
-                        <TextBox Grid.Row="3" Grid.Column="1">
+                        <TextBox Grid.Row="3" Grid.Column="1" VerticalAlignment="Center">
                             <TextBox.Text>
                                 <Binding Path="Definition.Quantity" UpdateSourceTrigger="PropertyChanged" NotifyOnValidationError="True">
                                     <Binding.ValidationRules>
@@ -142,7 +141,7 @@
                             </TextBox.Text>
                         </TextBox>
                         <TextBlock Grid.Row="4" Grid.Column="0" Text="扫描(ms)："/>
-                        <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Definition.ScanRate}"/>
+                        <TextBox Grid.Row="4" Grid.Column="1" VerticalAlignment="Center" Text="{Binding Definition.ScanRate}"/>
                     </Grid>
                 </Border>
             </Grid>
@@ -213,8 +212,12 @@
                     </md:DataGridTextColumn>
                     <md:DataGridTextColumn
                         ElementStyle="{StaticResource MaterialDesignDataGridTextColumnStyle}"
-                        EditingElementStyle="{StaticResource MaterialDesignDataGridTextColumnPopupEditingStyle}"
-                        Header="{Binding Source={StaticResource mainDataContext}, Path=Data.DataContext.Definition.Address}">
+                        EditingElementStyle="{StaticResource MaterialDesignDataGridTextColumnPopupEditingStyle}">
+                        <md:DataGridTextColumn.Header>
+                            <TextBlock Text="{Binding Source={StaticResource mainDataContext}, 
+                                Path=Data.DataContext.Definition.Address, StringFormat=地址: {0}}"
+                                       FontWeight="Bold" FontSize="15" Foreground="Black"/>
+                        </md:DataGridTextColumn.Header>
                         <md:DataGridTextColumn.Binding>
                             <Binding Path="Value" UpdateSourceTrigger="PropertyChanged">
                                 <Binding.ValidationRules>
@@ -236,7 +239,7 @@
                              IsChecked="{Binding SelectSendType, Converter={StaticResource comparsionConverter}, ConverterParameter={x:Static enums:SendType.HEX}}"/>
                 <RadioButton Content="ASCII" VerticalAlignment="Center" Margin="10,0,0,0"
                              IsChecked="{Binding SelectSendType, Converter={StaticResource comparsionConverter}, ConverterParameter={x:Static enums:SendType.ASCII}}"
-                             Visibility="{Binding SelectConnectMode, Converter={StaticResource visibilityConverter}, ConverterParameter={x:Static enums:ConnectMode.TcpIP}}"/>
+                             Visibility="{Binding SelectConnectMode, Converter={converters:VisibilityConverter}, ConverterParameter={x:Static enums:ConnectMode.TcpIP}}"/>
                 <TextBlock Margin="10,0,0,0" VerticalAlignment="Center" Foreground="PaleVioletRed" Text="(HEX发送如：01 02)"/>
             </StackPanel>
 

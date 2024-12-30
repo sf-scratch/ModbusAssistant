@@ -11,7 +11,7 @@ using System.Windows.Data;
 
 namespace ModbusAssistant.Converters
 {
-    internal class ConnectModeConverter : IEnumToDescriptionConverter<ConnectMode>
+    internal class ConnectModeConverter : BaseEnumToDescriptionConverter<ConnectMode>
     {
     }
 }

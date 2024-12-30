@@ -8,9 +8,9 @@ using System.Windows.Data;
 
 namespace ModbusAssistant.Converters
 {
-    internal class BooleanNegationConverter : IValueConverter
+    internal class BooleanNegationConverter : BaseValueConverter
     {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public override object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value is bool boolValue)
             {
@@ -19,7 +19,7 @@ namespace ModbusAssistant.Converters
             return false;
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        public override object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value is bool boolValue)
             {

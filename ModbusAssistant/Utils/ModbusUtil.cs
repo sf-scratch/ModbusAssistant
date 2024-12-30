@@ -70,6 +70,7 @@ namespace ModbusAssistant.Utils
             if (receiveData.Length < receiveDataLen)//接收数据异常
             {
                 ReceiveDataEvent?.Invoke(receiveData);
+                return null;
             }
             byte[] tempData = new byte[9];
             Array.Copy(sendData, 0, tempData, 0, 8);
@@ -120,6 +121,7 @@ namespace ModbusAssistant.Utils
             if (receiveData.Length < receiveDataLen)//接收数据异常
             {
                 ReceiveDataEvent?.Invoke(receiveData);
+                return null;
             }
             byte[] tempData = new byte[9];
             Array.Copy(sendData, 0, tempData, 0, 8);

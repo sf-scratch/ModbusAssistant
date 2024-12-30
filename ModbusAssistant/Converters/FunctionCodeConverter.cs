@@ -11,7 +11,7 @@ using System.Windows.Data;
 
 namespace ModbusAssistant.Converters
 {
-    internal class FunctionCodeConverter : IEnumToDescriptionConverter<FunctionCodeType>
+    internal class FunctionCodeConverter : BaseEnumToDescriptionConverter<FunctionCodeType>
     { 
     }
 }

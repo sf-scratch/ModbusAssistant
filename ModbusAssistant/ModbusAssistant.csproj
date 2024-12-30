@@ -92,11 +92,12 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Converters\BaseValueConverter.cs" />
     <Compile Include="Converters\BooleanNegationConverter.cs" />
     <Compile Include="Converters\ComparsionConverter.cs" />
     <Compile Include="Converters\ConnectModeConverter.cs" />
     <Compile Include="Converters\FunctionCodeConverter.cs" />
-    <Compile Include="Converters\IEnumToDescriptionConverter.cs" />
+    <Compile Include="Converters\BaseEnumToDescriptionConverter.cs" />
     <Compile Include="Converters\VisibilityConverter.cs" />
     <Compile Include="CustomControls\ShowLastListBox.cs" />
     <Compile Include="Enums\ConnectMode.cs" />

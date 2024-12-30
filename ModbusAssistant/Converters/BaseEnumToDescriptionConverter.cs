@@ -11,9 +11,9 @@ using System.Windows.Data;
 
 namespace ModbusAssistant.Converters
 {
-    internal class IEnumToDescriptionConverter<T> : IValueConverter where T : Enum
+    internal class BaseEnumToDescriptionConverter<T> : BaseValueConverter where T : Enum
     {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public override object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value is T mode)
             {
@@ -22,7 +22,7 @@ namespace ModbusAssistant.Converters
             return "IEnumToDescriptionConverter转换错误";
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        public override object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value is string mode)
             {
